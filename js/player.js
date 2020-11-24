@@ -14,7 +14,10 @@ class Spieler {
         this.areaManager = areaManager;
         this.x = areaManager.startx;
         this.y = areaManager.starty;
-        this.moveState = 0;
+        this.xDiMiBool = true;
+        this.xDiPlBool = true;
+        this.yDiMiBool = true;
+        this.yDiPlBool = true;
         this.eyeX = 0;
         this.eyeY = -1;
         this.winkel = 0;
@@ -67,10 +70,10 @@ class Spieler {
         if(keyWPressed){
             let newX = this.x;
             let newY = this.y;
-            if(this.eyeX == 1){ newX += moveSize1; }
-            if(this.eyeX == -1){ newX -= moveSize1; }
-            if(this.eyeY == -1){ newY -= moveSize1; }
-            if(this.eyeY == 1){ newY += moveSize1; }
+            if(this.xDiPlBool && this.eyeX == 1){ newX += moveSize1; }
+            if(this.xDiMiBool && this.eyeX == -1){ newX -= moveSize1; }
+            if(this.yDiMiBool && this.eyeY == -1){ newY -= moveSize1; }
+            if(this.yDiPlBool && this.eyeY == 1){ newY += moveSize1; }
             if(this.areaManager.checkPoints(newX, newY)){
                 this.x = newX;
                 this.y = newY;
@@ -79,24 +82,28 @@ class Spieler {
             //console.log("plyY"+this.y);
         }
         if(keyEPressed){
-            if(this.eyeX == 1){ this.y += moveSize2; }
-            if(this.eyeX == -1){ this.y -= moveSize2; }
-            if(this.eyeY == -1){ this.x += moveSize2; }
-            if(this.eyeY == 1){ this.x -= moveSize2; }
+            if(this.xDiPlBool && this.eyeX == 1){ this.y += moveSize2; this.xDiMiBool = true;}
+            if(this.xDiMiBool && this.eyeX == -1){ this.y -= moveSize2; this.xDiPlBool = true;}
+            if(this.yDiPlBool && this.eyeY == -1){ this.x += moveSize2; this.yDiMiBool = true;}
+            if(this.yDiMiBool && this.eyeY == 1){ this.x -= moveSize2; this.yDiPlBool = true;}
+            //TODO klappt noch nicht 24.11.2020
+            this.areaManager.checkPoints2(this);
         }
         if(keyQPressed){
-            if(this.eyeX == 1){ this.y -= moveSize2; }
-            if(this.eyeX == -1){ this.y += moveSize2; }
-            if(this.eyeY == -1){ this.x -= moveSize2; }
-            if(this.eyeY == 1){ this.x += moveSize2; }
+            if(this.xDiMiBool && this.eyeX == 1){ this.y -= moveSize2; this.xDiPlBool = true;}
+            if(this.xDiPlBool && this.eyeX == -1){ this.y += moveSize2; this.xDiMiBool = true;}
+            if(this.yDiMiBool && this.eyeY == -1){ this.x -= moveSize2; this.yDiPlBool = true;}
+            if(this.yDiPlBool && this.eyeY == 1){ this.x += moveSize2; this.yDiMiBool = true;}
+            //TODO klappt noch nicht 24.11.2020
+            this.areaManager.checkPoints2(this);
         }
         if(keySPressed){
             let newX = this.x;
             let newY = this.y;
-            if(this.eyeX == 1){ newX -= moveSize1; }
-            if(this.eyeX == -1){ newX += moveSize1; }
-            if(this.eyeY == -1){ newY += moveSize1; }
-            if(this.eyeY == 1){ newY -= moveSize1; }
+            if(this.xDiMiBool && this.eyeX == 1){ newX -= moveSize1; }
+            if(this.xDiPlBool && this.eyeX == -1){ newX += moveSize1; }
+            if(this.yDiPlBool && this.eyeY == -1){ newY += moveSize1; }
+            if(this.yDiMiBool && this.eyeY == 1){ newY -= moveSize1; }
             if(this.areaManager.checkPoints(newX, newY)){
                 this.x = newX;
                 this.y = newY;

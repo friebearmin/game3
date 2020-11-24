@@ -43,6 +43,7 @@
 //vielleicht Code säubern
 //oder neue Waffen Bewegungen
 //oder andere Zauber
+// man könnte auch den Mittelpunkt dies Spiele betrachten und nicht eine Ecke von ihm
 
 var canvas;
 var ctx;
@@ -72,8 +73,8 @@ function main(bodyWindow){
     setCanvasSize(bodyWindow);
     imageWeapon = new Image();
     areaManager1 = new AreaManager(xCe, yCe)
-    areaManager1.addyWall(0,0,300);
-    areaManager1.addyWall(20,0,300);
+    areaManager1.addyWall(0,0,300,1);
+    areaManager1.addyWall(20,0,300,-1);
     objectArray = [];
     objectPlayer = [];
     myID = Math.floor((Math.random() * 100) + 1);
@@ -172,6 +173,7 @@ class AreaManager {
         this.yValues = [];
         this.yWallStart = [];
         this.yWallEnd = [];
+        this.yDirection = [];
 
     }
     addAreaObject = function(points){
@@ -185,18 +187,46 @@ class AreaManager {
         console.log('Achtung die Methode addxWall in main.js funktioniert nicht!');
 
     }
-    addyWall = function(yValue, start, end){
+    addyWall = function(yValue, start, end, dircetion){
         this.yValues[this.yValues.length] = yValue;
         this.yWallStart[this.yWallStart.length] = start;
         this.yWallEnd[this.yWallEnd.length] = end;
+        this.yDirection[this.yDirection.length] = dircetion;
 
     }
-    checkPoints = function(xValue, yValue){
-// TODO 23.11.2020
+// TODO 24.11.2020
 //Eine neue Idee
 //Statt zu sagen, der neue Punkt ist okay
 //Koennte man auch sagen, der aktuelle Punkt darf in diese Richtung
 //nicht veraendert werden
+    checkPoints2 = function(object){
+        for(let i=0; i < this.yValues.length;i++){
+            if(this.yValues[i] == object.y){
+                if(this.yWallStart[i] < object.x){
+                    if(this.yWallEnd[i] > object.x){
+                        if(this.yDirection[i] == 1){
+                            console.log('Kaffee1');
+                            if(object.xDiPlBool){
+                                console.log('Kaffee11');
+                            }
+                            if(!object.xDiPlBool){
+                                console.log('Kaffee12');
+                            }
+                            object.xDiPlBool = false;
+                            return;
+                        }
+                        if(this.yDirection[i] == -1){
+                            object.xDiMiBool = false;
+                            console.log('Kaffee2');
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+
+    }
+    checkPoints = function(xValue, yValue){
         for(let i=0; i < this.xValues.length;i++){
             if(this.xValues[i] == xValue){
                 if(this.xWallStart[i] < yValue){
