@@ -91,10 +91,16 @@ class Spieler {
             if(this.eyeY == 1){ this.x += moveSize2; }
         }
         if(keySPressed){
-            if(this.eyeX == 1){ this.x -= moveSize2; }
-            if(this.eyeX == -1){ this.x += moveSize2; }
-            if(this.eyeY == -1){ this.y += moveSize2; }
-            if(this.eyeY == 1){ this.y -= moveSize2; }
+            let newX = this.x;
+            let newY = this.y;
+            if(this.eyeX == 1){ newX -= moveSize1; }
+            if(this.eyeX == -1){ newX += moveSize1; }
+            if(this.eyeY == -1){ newY += moveSize1; }
+            if(this.eyeY == 1){ newY -= moveSize1; }
+            if(this.areaManager.checkPoints(newX, newY)){
+                this.x = newX;
+                this.y = newY;
+            }
         }
     }
 	render = function(ctx, xS, yS){

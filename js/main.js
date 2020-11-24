@@ -72,7 +72,8 @@ function main(bodyWindow){
     setCanvasSize(bodyWindow);
     imageWeapon = new Image();
     areaManager1 = new AreaManager(xCe, yCe)
-    areaManager1.addyWall(0,0,100);
+    areaManager1.addyWall(0,0,300);
+    areaManager1.addyWall(20,0,300);
     objectArray = [];
     objectPlayer = [];
     myID = Math.floor((Math.random() * 100) + 1);
@@ -174,23 +175,28 @@ class AreaManager {
 
     }
     addAreaObject = function(points){
+        console.log('Achtung die Methode addAreaObject in main.js funktioniert nicht!');
     }
     //Fuegt Punkte hinzu und berechnet die entsprechenden Waende
     addPoints = function(points){
-
+        console.log('Achtung die Methode addPoints in main.js funktioniert nicht!');
     }
     addxWall = function(xValue, start, end){
+        console.log('Achtung die Methode addxWall in main.js funktioniert nicht!');
 
     }
     addyWall = function(yValue, start, end){
+        this.yValues[this.yValues.length] = yValue;
+        this.yWallStart[this.yWallStart.length] = start;
+        this.yWallEnd[this.yWallEnd.length] = end;
 
     }
     checkPoints = function(xValue, yValue){
-        //TODO
-        //Hier ist noch ein Fehler
-        //Methode wird schoen aufgerufen
-        //aber es wird nicht erkannt,
-        //dass die Grenze ueberschritten wird
+// TODO 23.11.2020
+//Eine neue Idee
+//Statt zu sagen, der neue Punkt ist okay
+//Koennte man auch sagen, der aktuelle Punkt darf in diese Richtung
+//nicht veraendert werden
         for(let i=0; i < this.xValues.length;i++){
             if(this.xValues[i] == xValue){
                 if(this.xWallStart[i] < yValue){
@@ -201,7 +207,7 @@ class AreaManager {
             }
         }
         for(let i=0; i < this.yValues.length;i++){
-            if(this.yValues[i] > yValue){
+            if(this.yValues[i] == yValue){
                 if(this.yWallStart[i] < xValue){
                     if(this.yWallEnd[i] > xValue){
                         return false;
@@ -211,7 +217,7 @@ class AreaManager {
         }
 
 
-        console.log('Kaffee');
+        //console.log('Kaffee' + this.yValues.length);
         return true;
     }
 }
