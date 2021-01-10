@@ -1,46 +1,21 @@
 document.onkeydown = function(event) {
 	// 1-Taste 
-	if (event.keyCode == 49 && attackStopPly1) {	
-        clearInterval(ply1.interval);
-		attackStopPly1 = false;
-		ply1.attackGo();
-		ply1.interval = setInterval(weaponMove1, 20);
-		setTimeout(weaponReset1, 300);
+	if (event.keyCode == 49) {	
 		return;
 	}	
 	// 2-Taste 
 	if (event.keyCode == 50) {	
-	    if(ply1.attackStop){
-            clearInterval(ply1.interval);
-            ply1.attackStop = false;
-            ply1.interval = setInterval( function(){ply1.weaponMove();}, 20);
-            setTimeout(function(){ply1.stopAttack();}, 300);
-        }
+		return;
     }	
 	// 3-Taste 
 	if (event.keyCode == 51) {	
-	    if(ply1.attackStop){
-            clearInterval(ply1.interval);
-            ply1.attackStop = false;
-            ply1.attackLance();
-            ply1.interval = setInterval( function(){ply1.weaponMove();}, 20);
-            setTimeout(function(){
-                ply1.stopAttack2();
-                ply1.attackDirection = false; 
-                ply1.interval = setInterval( function(){ply1.attackLance();}, 20);
-                setTimeout(function(){
-                    clearInterval(ply1.interval);
-                    ply1.interval = setInterval( function(){ply1.attackLanceBack();}, 20);
-                    setTimeout(function(){
-                        ply1.stopAttack();
-                    }, 100);
-                }, 100);
-            }, 160);
-        }
+	    key3Pressed = true; 
+		return;
     }
 	// 4-Taste 
 	if (event.keyCode == 52) {	
 	    key4Pressed = true; 
+		return;
     }
 
 	// W-Taste
@@ -96,14 +71,17 @@ document.onkeydown = function(event) {
     // Q-Taste
 	if (event.keyCode == 81) {
         keyQPressed = true;
+		return;
     }	
 	// E-Taste
 	if (event.keyCode == 69) {
         keyEPressed = true;
+		return;
 	}	
     // S-Taste
 	if (event.keyCode == 83) {
         keySPressed = true;
+		return;
 	}	
 }
 document.onkeyup = function(event) {

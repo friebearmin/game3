@@ -2,5 +2,5 @@ Was man so machen koennte:
 + Faehigkeiten vom Charakter verbessern und ergaenzen
 - Maps erstellen
 - mehere Charakter, also zusammen spielen
-- Objecte erzeugen, die man zerstören kann (Steine, Mobs, Spieler)
++ Objecte erzeugen, die man zerstören kann (Steine, Mobs, Spieler)
 - 

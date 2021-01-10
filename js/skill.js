@@ -241,8 +241,8 @@ class Spell{
 	    //Eiswand bewegt sich rum
         ctx.lineJoin = "round";
         ctx.beginPath();
-        let xValue = xCe+areaSize/2;
-        let yValue = yCe+areaSize/2;
+        let xValue = xCe;
+        let yValue = yCe;
         ctx.moveTo(xValue+this.x1End, yValue+this.y1End);
         ctx.lineTo(xValue+this.x2End, yValue+this.y2End);
         ctx.lineTo(xValue+this.x3End, yValue+this.y3End);
@@ -256,6 +256,9 @@ class Spell{
         ctx.closePath();
 	    ctx.fillStyle = "#66ccff";
         ctx.fill();
+    }
+    beingAttacked = function(xVal1, yVal1, xVal2, yVal2){
+        //console.error("Ein Spell wurde angegriffen. Nichts programmiert."); 
     }
 }
 const weaponTypes = ['hammer', 'polearm', 'axe', 'sword', 'rod', 'dagger', 'katana'];
@@ -271,8 +274,13 @@ class Weapon{
         this.coords2;
         this.coords3;
         this.coords4;
+        this.moveX = 0;
+        this.moveY = 0;
+        this.moveXY = 1;
         this.weaponShiftX = 0;
-        this.useWeapon = false;
+        this.weaponInNoUse = true;
+        this.useWeapon1 = false;
+        this.useWeapon2 = false;
         this.moveWeaponDirection = 1;
         switch(this.name){
             case weaponTypes[0]:
@@ -346,66 +354,90 @@ class Weapon{
         }
     }
 	render = function(ctx, xS, yS){
-        var xZero = xCe+areaSize/2; var yZero = yCe+areaSize/2;
+        var xZero = xCe; var yZero = yCe;
         ctx.translate(xZero, yZero);
         ctx.rotate(-this.angle * Math.PI / 180);
-        ctx.drawImage(imageWeapon, 0, 0, 128, 128, 0, 0, 50, 50);
+        ctx.drawImage(imageWeapon, 0, 0, 128, 128, 0+this.moveX, 0+this.moveY, areaSize*2, areaSize*2);
+
+        /*
+        ctx.beginPath();
+        ctx.moveTo(1, 0);
+        ctx.lineTo(-1, 0);
+        ctx.lineTo(50, 50);
+        ctx.closePath();
+	    ctx.fillStyle = "#66ccff";
+        ctx.fill();
+        */
+
         ctx.rotate(this.angle * Math.PI / 180);
         ctx.translate(-xZero, -yZero);
     }
 	update = function(){
-	    if(this.useWeapon){
-	        this.angle += this.moveWeaponDirection*7;
-	        if(this.angle > 170){
-                this.moveWeaponDirection = -1;
-            }
-	        if(this.angle < 46){
-                this.moveWeaponDirection = 1;
-                this.angle = 45
-                this.useWeapon = false;
+	    if(this.useWeapon1){
+            this.weaponMove1();
+        }
+	    if(this.useWeapon2){
+            this.weaponMove2();
+        }
+	    if(key3Pressed){
+            if(this.useWeapon2){
+                this.useWeapon2 = false;
+                key3Pressed = false;
+            }else{
+                this.useWeapon2 = true;
+                key3Pressed = false;
             }
         }
 	    if(key4Pressed){
-            this.useWeapon = true;
-            key4Pressed = false;
+            if(this.useWeapon1){
+                this.useWeapon1 = false;
+                key4Pressed = false;
+                //this.moveWeaponDirection = -1;
+            }else{
+                console.log("Weapon is used."); 
+                this.useWeapon1 = true;
+                key4Pressed = false;
+            }
         }
     }
-	draw = function(ctx, xS, yS){
-        var xZero = xCe+areaSize/2; var yZero = yCe+areaSize/2;
-        //var xZero = this.player.x+areaSize/2; var yZero = this.player.y+areaSize/2;
-        var xAuge = this.player.eyeX*1; var yAuge = this.player.eyeY*1;
-        let angleTmp;
-        /*
-        if(this.player.eyeX == -1){
-            angleTmp = (this.angle+180)%360;
-        }else if(this.player.eyeX == 1){
-            angleTmp = (this.angle+0)%360;
-        }else if(this.player.eyeY == -1){
-            angleTmp = (this.angle+90)%360;
-        }else if(this.player.eyeY == 1){
-            angleTmp = (this.angle+270)%360;
+	weaponMove1 = function(){
+        this.angle += this.moveWeaponDirection*7;
+        let attackBool = false;
+        if(this.moveWeaponDirection == 1){
+            let winkelTmp = this.angle-135;
+            let pointsofWeapon = [];
+            for(var i = 0;i<4;i++){
+                let xToBeCal = this.player.eyeX*(areaSize+areaSize*i/3);
+                let yToBeCal = this.player.eyeY*(areaSize+areaSize*i/3);
+                let gedrehtePunkte = drehePunkt(0, 0, xToBeCal, yToBeCal, winkelTmp);
+                pointsofWeapon.push(new Point(this.player.x+gedrehtePunkte[0],this.player.y+gedrehtePunkte[1]));
+            }
+            attackBool = this.player.areaManager.attackArea(pointsofWeapon);
         }
-        */
-        
-        angleTmp = (this.angle+90)%360;
-
-        let coordsTmp = [];
-        for(let i = 0; i<this.coords.length; i++){
-            //coordsTmp.push(drehePunkt(0, 0, this.coords[i].x, this.coords[i].y, angleTmp));
-            coordsTmp.push(this.coords[i].turnPoint(angleTmp));
+        if(this.angle > 170 || attackBool){
+            this.moveWeaponDirection = -1;
         }
-        
-        var addX = this.weaponShiftX*xAuge+xZero;
-        var addY = this.weaponShiftX*yAuge+yZero;
-        ctx.beginPath();
-        ctx.moveTo(coordsTmp[0].x+addX, coordsTmp[0].x+addY);
-        for(let i = 1; i<coordsTmp.length; i++){
-            ctx.lineTo(coordsTmp[i].x+addX, coordsTmp[i].y+addY);
+        if(this.angle < 46){
+            this.moveWeaponDirection = 1;
+            this.angle = 45
+            this.useWeapon1 = false;
         }
-        ctx.closePath();
-        ctx.fillStyle = "#000000";
-        ctx.fill();
-        
     }
-
+	weaponMove2 = function(){
+        this.moveX += 3*this.moveXY;
+        this.moveY += 3*this.moveXY;
+        if(this.moveX > 20){
+            this.moveXY = -1;
+        }
+        if(this.moveX <= 0){
+            this.moveX = 0;
+            this.moveY = 0;
+            this.moveXY = 1;
+            this.useWeapon2 = false;
+            if(this.angle > 45){
+                this.useWeapon1 = true;
+                this.moveWeaponDirection = -1;
+            }
+        }
+    }
 }

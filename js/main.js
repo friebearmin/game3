@@ -14,20 +14,20 @@
     var vendors = ['ms', 'moz', 'webkit', 'o'];
     for(var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
         window.requestAnimationFrame = window[vendors[x]+'RequestAnimationFrame'];
-        window.cancelAnimationFrame = window[vendors[x]+'CancelAnimationFrame'] 
+        window.cancelAnimationFrame = window[vendors[x]+'CancelAnimationFrame']
                                    || window[vendors[x]+'CancelRequestAnimationFrame'];
     }
- 
+
     if (!window.requestAnimationFrame)
         window.requestAnimationFrame = function(callback, element) {
             var currTime = new Date().getTime();
             var timeToCall = Math.max(0, 16 - (currTime - lastTime));
-            var id = window.setTimeout(function() { callback(currTime + timeToCall); }, 
+            var id = window.setTimeout(function() { callback(currTime + timeToCall); },
               timeToCall);
             lastTime = currTime + timeToCall;
             return id;
         };
- 
+
     if (!window.cancelAnimationFrame)
         window.cancelAnimationFrame = function(id) {
             clearTimeout(id);
@@ -44,6 +44,10 @@
 //oder neue Waffen Bewegungen
 //oder andere Zauber
 // man könnte auch den Mittelpunkt dies Spiele betrachten und nicht eine Ecke von ihm
+// 2020.12.02 - 18:30
+// Man koennte jetzt die Waffenschlaege aufraeumen
+// Die alten weg und der neue macht Schaden
+// Also Schaden Verwaltung anfangen
 
 var canvas;
 var ctx;
@@ -52,12 +56,16 @@ var ply1;
 var myID;
 let objectArray;
 let objectPlayer;
-let xCe = 140;
-let yCe = 140;
-let xCe2 = 150;
-let yCe2 = 150;
+const xDim = 15;
+const yDim = 15;
+let xCe = areaSize*xDim/2;
+let yCe = areaSize*yDim/2;
+//DimTmp is for AreaManager Matrix administration 
+const xDimTmp = 2;
+const yDimTmp = 2;
 let imageWeapon;
 let areaManager1;
+let key3Pressed = false;
 let key4Pressed = false;
 let keyWPressed = false;
 let keyEPressed = false;
@@ -68,38 +76,82 @@ let keySPressed = false;
 // los gelassen wird
 // und bei True wird entsprechend was gemacht
 function main(bodyWindow){
+    //loadDataFromFile("file:///D:/Programme/myPrograms/Das Spiel/HTML/Game - 3.2/ToDos.txt", handleFileData);
+    fetch('file:///D:/Programme/myPrograms/Das Spiel/HTML/Game - 3.2/ToDos.txt')
+  .then(response => response.text())
+  .then(text => console.log(text))
+    /*
+    var url = 'ToDos.txt';
+    var storedText;
+
+    fetch(url)
+    .then(function(response) {
+        response.text().then(function(text) {
+        storedText = text;
+        done();
+        });
+    });
+
+    function done() {
+        console.log(storedText);
+    }
+    */
+
     canvas = document.getElementById("mainCanvas");
     ctx = canvas.getContext("2d");
     setCanvasSize(bodyWindow);
     imageWeapon = new Image();
     areaManager1 = new AreaManager(xCe, yCe)
-    areaManager1.addyWall(0,0,300,1);
-    areaManager1.addyWall(20,0,300,-1);
+    areaManager1.addyWall(0,0,2*xCe,1);
+    areaManager1.addyWall(areaSize,0,2*xCe,-1);
+    areaManager1.addyWall(2*yCe,0,areaSize,-1);
+    areaManager1.addxWall(areaSize,0,2*yCe,-1);
+    areaManager1.addxWall(0,0,2*yCe,1);
+    areaManager1.addxWall(2*xCe,0,areaSize,-1);
+
+    areaManager1.addyWall(areaSize*3,areaSize*2,areaSize*3,1);
+    areaManager1.addyWall(areaSize*10,areaSize*2,areaSize*3,-1);
+    areaManager1.addxWall(areaSize*2,areaSize*3,areaSize*10,1);
+    areaManager1.addxWall(areaSize*3,areaSize*3,areaSize*10,-1);
     objectArray = [];
     objectPlayer = [];
     myID = Math.floor((Math.random() * 100) + 1);
     for(i=0;i<15;i++){
-        objectArray.push(new Cube(i, i*20, 0));
+        objectArray.push(new Cube(i, i*areaSize, 0));
+        areaManager1.addObjectToMatrix(objectArray[objectArray.length-1])
     }
     for(i=1;i<15;i++){
-        objectArray.push(new Cube(i+15, 0, i*20));
+        objectArray.push(new Cube(i+15, 0, i*areaSize));
+        areaManager1.addObjectToMatrix(objectArray[objectArray.length-1])
     }
     for(i=3;i<10;i++){
-        objectArray.push(new Cube(i+30, 40, i*20));
+        objectArray.push(new Cube(i+30, areaSize*2, i*areaSize));
+        areaManager1.addObjectToMatrix(objectArray[objectArray.length-1])
     }
-    objectArray.push(new Cube(40, 280, 280));
+    objectArray.push(new Cube(40, areaSize*14, areaSize*14));
+    areaManager1.addAreaObject(objectArray[objectArray.length-1])
+    areaManager1.addObjectToMatrix(objectArray[objectArray.length-1])
+    objectArray.push(new Rock(41, areaSize*14, areaSize*7));
+    areaManager1.addAreaObject(objectArray[objectArray.length-1])
+    areaManager1.addObjectToMatrix(objectArray[objectArray.length-1])
+    objectArray.push(new Cube(42, areaSize*14, (-1)*areaSize*14));
+    areaManager1.addObjectToMatrix(objectArray[objectArray.length-1])
 	ply1 = new Spieler(1, areaManager1);
     objectPlayer.push(ply1);
     objectPlayer.push(ply1.spell);
     console.log("objectArray:"+objectArray.length);
+    console.log('matrx[0][0].length: '+areaManager1.matrix[0][0].length);
+    console.log('matrx[0][1].length: '+areaManager1.matrix[0][1].length);
+    console.log('matrx[1][0].length: '+areaManager1.matrix[1][0].length);
+    console.log('matrx[1][1].length: '+areaManager1.matrix[1][1].length);
 	//ply1.spell.loop = setInterval(function(){ply1.spell.repeat();}, 200);
     gameLoop();
 }
 
 //Passt die Größe des Canvas Objectes an
 function setCanvasSize(bodyWindow){
-    document.getElementById("mainCanvas").width = xCe2*2;
-    document.getElementById("mainCanvas").height = yCe2*2;
+    document.getElementById("mainCanvas").width = xCe*2;
+    document.getElementById("mainCanvas").height = yCe*2;
 }
 //löscht alles im Canvas
 function clearField()
@@ -114,31 +166,29 @@ function gameLoop(){
     clearField();
     xShiftObject = (-1)*(ply1.x);
     yShiftObject = (-1)*(ply1.y);
-    let xShiftObjectForRotation = xCe2-areaSize/2;
-    let yShiftObjectForRotation = yCe2-areaSize/2;
+    let xShiftObjectForRotation = xCe;
+    let yShiftObjectForRotation = yCe;
     var rot = 0;
-    if(ply1.eyeX == 1){ 
+    if(ply1.eyeX == 1){
         var rot = 90;
-        yShiftObjectForRotation = yCe2-areaSize/2+areaSize;
+        yShiftObjectForRotation = yCe;
     }
-    if(ply1.eyeX == -1){ 
-        var rot = 270; 
-        xShiftObjectForRotation = xCe2-areaSize/2+areaSize;
+    if(ply1.eyeX == -1){
+        var rot = 270;
+        xShiftObjectForRotation = xCe;
     }
     /*
-    if(ply1.eyeY == -1){ 
-        var rot = 0; 
+    if(ply1.eyeY == -1){
+        var rot = 0;
     }
     */
     if(ply1.eyeY == 1){
-        var rot = 180; 
-        yShiftObjectForRotation = yCe2-areaSize/2+areaSize;
-        xShiftObjectForRotation = xCe2-areaSize/2+areaSize;
+        var rot = 180;
+        yShiftObjectForRotation = yCe;
+        xShiftObjectForRotation = xCe;
     }
-    //ctx.translate(xCe+areaSize/2, yCe+areaSize/2);
+    //Führt eine Translation durch damit die Rotation um den Spieler passiert
     ctx.translate(xShiftObjectForRotation,yShiftObjectForRotation);
-    
-
     ctx.rotate(-rot * Math.PI / 180);
     for(var obj in objectArray){
         //Passt das Objekt an, welches gleich gezeichnet wird
@@ -146,8 +196,8 @@ function gameLoop(){
         //Zeichnet das Objekt
         objectArray[obj].render(ctx,xShiftObject,yShiftObject);
     }
+    //areaManager1.render(ctx,xShiftObject,yShiftObject);
     ctx.rotate(rot * Math.PI / 180);
-    //ctx.translate((-1)*(xCe+areaSize/2), (-1)*(yCe+areaSize/2));
     ctx.translate((-1)*xShiftObjectForRotation, (-1)*yShiftObjectForRotation);
     for(var obj in objectPlayer){
         //Passt das Objekt an, welches gleich gezeichnet wird
@@ -159,6 +209,8 @@ function gameLoop(){
 //Diese Klasse soll verwalten
 //wo man hingehen kann
 //TODO hier wird gerade gearbeitet, 15.11.2020 16:00
+// Add something, was checkt ob ein Objekt aktiv ist
+// und passt die Grenzen an
 class AreaManager {
     constructor(x,y) {
         //Hier startet der Spieler
@@ -170,22 +222,59 @@ class AreaManager {
         this.xValues = [];
         this.xWallStart = [];
         this.xWallEnd = [];
+        this.xDirection = [];
         this.yValues = [];
         this.yWallStart = [];
         this.yWallEnd = [];
         this.yDirection = [];
-
+        this.matrix = []
+        this.matrix[0] = []
+        this.matrix[1] = []
+        this.matrix[0][0] = []
+        this.matrix[0][1] = []
+        this.matrix[1][0] = []
+        this.matrix[1][1] = []
     }
-    addAreaObject = function(points){
-        console.log('Achtung die Methode addAreaObject in main.js funktioniert nicht!');
+	render = function(ctx, xS, yS){
+	    ctx.fillStyle = "#ff3300";
+
+        for(let i=0; i < this.yValues.length;i++){
+            ctx.beginPath();
+            ctx.moveTo(this.yWallStart[i]+xS-areaSize/2, this.yValues[i]+yS-this.yDirection[i]*areaSize/2+this.yDirection[i]);
+            ctx.lineTo(this.yWallEnd[i]+xS+areaSize/2, this.yValues[i]+yS-this.yDirection[i]*areaSize/2+this.yDirection[i]);
+            ctx.stroke();
+        }
+        for(let i=0; i < this.xValues.length;i++){
+            ctx.beginPath();
+            ctx.moveTo(this.xValues[i]+xS-this.xDirection[i]*areaSize/2+this.xDirection[i], this.xWallStart[i]+yS-areaSize/2);
+            ctx.lineTo(this.xValues[i]+xS-this.xDirection[i]*areaSize/2+this.xDirection[i], this.xWallEnd[i]+yS+areaSize/2);
+            ctx.stroke();
+        }
+    }
+    addAreaObject = function(object){
+        let xWalls = object.getxWalls();
+        for (let i in xWalls) {
+            this.addxWall(xWalls[i][0], xWalls[i][1], xWalls[i][2], xWalls[i][3])
+        }
+        let yWalls = object.getyWalls();
+        for (let i in yWalls) {
+            this.addyWall(yWalls[i][0], yWalls[i][1], yWalls[i][2], yWalls[i][3])
+        }
+        this.manageWalls();
+    }
+    // Diese Methode soll alle Walls untersuchen und sie verbinden oder loeschen
+    manageWalls = function(){
+        console.log('Achtung die Methode manageWalls in main.js funktioniert nicht!');
     }
     //Fuegt Punkte hinzu und berechnet die entsprechenden Waende
     addPoints = function(points){
         console.log('Achtung die Methode addPoints in main.js funktioniert nicht!');
     }
-    addxWall = function(xValue, start, end){
-        console.log('Achtung die Methode addxWall in main.js funktioniert nicht!');
-
+    addxWall = function(xValue, start, end, dircetion){
+        this.xValues[this.xValues.length] = xValue;
+        this.xWallStart[this.xWallStart.length] = start;
+        this.xWallEnd[this.xWallEnd.length] = end;
+        this.xDirection[this.xDirection.length] = dircetion;
     }
     addyWall = function(yValue, start, end, dircetion){
         this.yValues[this.yValues.length] = yValue;
@@ -194,63 +283,143 @@ class AreaManager {
         this.yDirection[this.yDirection.length] = dircetion;
 
     }
-// TODO 24.11.2020
-//Eine neue Idee
-//Statt zu sagen, der neue Punkt ist okay
-//Koennte man auch sagen, der aktuelle Punkt darf in diese Richtung
-//nicht veraendert werden
-    checkPoints2 = function(object){
+    checkPoints = function(object){
         for(let i=0; i < this.yValues.length;i++){
-            if(this.yValues[i] == object.y){
-                if(this.yWallStart[i] < object.x){
-                    if(this.yWallEnd[i] > object.x){
-                        if(this.yDirection[i] == 1){
-                            console.log('Kaffee1');
-                            if(object.xDiPlBool){
-                                console.log('Kaffee11');
-                            }
-                            if(!object.xDiPlBool){
-                                console.log('Kaffee12');
-                            }
-                            object.xDiPlBool = false;
-                            return;
-                        }
-                        if(this.yDirection[i] == -1){
-                            object.xDiMiBool = false;
-                            console.log('Kaffee2');
-                            return;
-                        }
+            if((this.yValues[i]-this.yDirection[i]*areaSize/2+this.yDirection[i]) == object.y){
+                if((this.yWallStart[i]-areaSize/2) < object.x && (this.yWallEnd[i]+areaSize/2) > object.x){
+                    if(this.yDirection[i] == 1){
+                        object.xDiPlBool = false;
+                        break;
+                    }
+                    if(this.yDirection[i] == -1){
+                        object.xDiMiBool = false;
+                        break;
+                    }
+                }
+                if((this.yWallStart[i]-areaSize/2) > object.x){
+                        //console.log('Kaffee12');
+                    if(this.yDirection[i] == 1){
+                        object.xDiPlBool = true;
+                    }
+                    if(this.yDirection[i] == -1){
+                        object.xDiMiBool = true;
+                    }
+                }
+                if((this.yWallEnd[i]+areaSize/2) < object.x){
+                    if(this.yDirection[i] == 1){
+                        object.xDiPlBool = true;
+                    }
+                    if(this.yDirection[i] == -1){
+                        object.xDiMiBool = true;
                     }
                 }
             }
         }
-
-    }
-    checkPoints = function(xValue, yValue){
         for(let i=0; i < this.xValues.length;i++){
-            if(this.xValues[i] == xValue){
-                if(this.xWallStart[i] < yValue){
-                    if(this.xWallEnd[i] > yValue){
-                        return false;
+            if((this.xValues[i]-this.xDirection[i]*areaSize/2+this.xDirection[i]) == object.x){
+                if((this.xWallStart[i]-areaSize/2) < object.y && (this.xWallEnd[i]+areaSize/2) > object.y){
+                    if(this.xDirection[i] == 1){
+                        object.yDiPlBool = false;
+                        break;
+                    }
+                    if(this.xDirection[i] == -1){
+                        object.yDiMiBool = false;
+                        break;
+                    }
+                }
+                if((this.xWallStart[i]-areaSize/2) > object.y){
+                        //console.log('Kaffee12');
+                    if(this.xDirection[i] == 1){
+                        object.yDiPlBool = true;
+                    }
+                    if(this.xDirection[i] == -1){
+                        object.yDiMiBool = true;
+                    }
+                }
+                if((this.xWallEnd[i]+areaSize/2) < object.y){
+                    if(this.xDirection[i] == 1){
+                        object.yDiPlBool = true;
+                    }
+                    if(this.xDirection[i] == -1){
+                        object.yDiMiBool = true;
                     }
                 }
             }
         }
-        for(let i=0; i < this.yValues.length;i++){
-            if(this.yValues[i] == yValue){
-                if(this.yWallStart[i] < xValue){
-                    if(this.yWallEnd[i] > xValue){
-                        return false;
-                    }
+    }
+    addObjectToMatrix = function(object){
+        var xMod00 = Math.floor(mod(object.x,xCe*2)/xCe);
+        var yMod00 = Math.floor(mod(object.y,yCe*2)/yCe);
+        this.matrix[xMod00][yMod00].push(object);
+        var xMod11 = Math.floor(mod(object.x+areaSize,xCe*2)/xCe);
+        var yMod11 = Math.floor(mod(object.y+areaSize,xCe*2)/yCe);
+        if(xMod11 == 2){
+            xMod11 = 1;
+        }
+        if(yMod11 == 2){
+            yMod11 = 1;
+        }
+        var boolBoth = 0;
+        if(xMod00 != xMod11){
+            this.matrix[xMod11][yMod00].push(object);
+            boolBoth++;
+        }
+        if(yMod00 != yMod11){
+            this.matrix[xMod00][yMod11].push(object);
+            boolBoth++;
+        }
+        if(boolBoth == 2){
+            this.matrix[xMod11][yMod11].push(object);
+        }
+    }
+    checkPointMatrix = function(point){
+        //TODO Methode mit x und y benutzen
+        //dabei aber jeden Punkt überprüfen und nicht nur einmal am Ende
+        //und die verschieben beim Punkt dazu rechnet und nicht 
+        //wie in der checkPoint Methode
+        //also wenn man in xEye = -1, dann Minus areaSize/2 auf dem Point rechnen
+        //var xMod = Math.floor(point.x%(xCe*2)/xCe);
+        var xMod = Math.floor(mod(point.x,xCe*2)/xCe);
+        //var yMod = Math.floor(point.y%(yCe*2)/yCe);
+        var yMod = Math.floor(mod(point.y,yCe*2)/yCe);
+        try{
+            for(var obj in this.matrix[xMod][yMod]){
+                if(this.matrix[xMod][yMod][obj].isPointIn(point)){
+                    console.log("checkPointMatrix id: "+this.matrix[xMod][yMod][obj].id);
+                    return true;
                 }
             }
         }
-
-
-        //console.log('Kaffee' + this.yValues.length);
-        return true;
+        catch(e){
+            console.log("xMod and yMod - Values: "+ xMod +' & '+ yMod);
+            console.log("x and y - Values: "+ point.x +' & '+ point.y);
+        }
+        return false;
+    }
+    attackArea = function(points){
+        var boolVal = false;
+        for(var obj in objectArray){
+            if(objectArray[obj].beingAttacked(points)){
+                boolVal = true;
+                break;
+            }
+        }
+        if(boolVal){
+            return true;
+        }
+        for(var obj in objectPlayer){
+            if(objectPlayer[obj].beingAttacked(points)){
+                boolVal = true;
+                break;
+            }
+        }
+        if(boolVal){
+            return true;
+        }
+        return false;
     }
 }
+//xD und yD ist der Ursprung um den sich x und y drehen soll
 function drehePunkt(xD, yD, x, y, winkel) {
 	xN = x-xD; //Abstand zwischen xD und x
 	yN = y-yD; //Abstand zwischen yD und y
@@ -281,4 +450,37 @@ class Point{
 }
 function imageIsLoaded(){
     console.log("image was loaded");
+}
+function mod(n, m){
+  return ((n % m) + m) % m;
+}
+/*
+// Do the request
+loadDataFromFile("/path/to/file", handleFileData);
+*/
+function loadDataFromFile(path, callback) {
+    var xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState == 4) {
+            // The request is done; did it work?
+            if (xhr.status == 200 || xhr.status == 0) {
+                // ***Yes, use `xhr.responseText` here***
+                callback(xhr.responseText);
+            } else {
+                // ***No, tell the callback the call failed***
+                callback(null);
+            }
+        }
+    };
+    xhr.open("GET", path);
+    xhr.send();
+}
+
+function handleFileData(fileData) {
+    if (!fileData) {
+        // Show error
+        return;
+    }
+    // Use the file data
+    console.log(fileData);
 }
