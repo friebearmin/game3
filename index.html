@@ -1,50 +1,82 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Das Spiel 3.2</title>
+    <title>Das Spiel 3.2.012</title>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="css/jquery.mobile-1.4.5.css">
     <link rel="stylesheet" href="css/style.css">
     <script src="js/jquery-1.11.3.min.js"></script>
     <script src="js/jquery.mobile-1.4.5.min.js"></script>
+    <script src="js/cssControl.js"></script>
+    <script src="js/server.js"></script>
     <script src="js/player.js"></script>
     <script src="js/skill.js"></script>
     <script src="js/dynamicTable.js"></script>
     <script src="js/documentReady.js"></script>
     <script src="js/keyboardEvent.js"></script>
     <script src="js/touchEvent.js"></script>
+    <script src="js/worldData.js"></script>
     <script src="js/main.js"></script>
+    <script src="js/unittest.js"></script>
 </head>
 <body onload="main(self)">
-    <div data-role="page" id="pagetwo">
-        <!--
-        <div data-role="header">
-            <h1>Das Spiel 3.1 Page 2</h1>
-        </div>
-        -->
-        <div data-role="main" class="ui-content">
-            <canvas id="mainCanvas" style="border:1px solid #000000;">Ihr Browser ist viel zu alt!</canvas>
+    <div data-role="page" id="pageone">
+        <div data-role="main" class="ui-content" id="mainCanvasDiv" style="padding: 0;">
+            <div class="sections">
+                <div class="one-second-col">
+                    <canvas id="leftCanvas">Ihr Browser ist viel zu alt!</canvas>
+                </div>
+                <div class="one-main-col">
+                    <canvas id="mainCanvas"
+                        onmousemove="getPos(event)"
+                        onclick="clickCanvas(event)" 
+                        >Ihr Browser ist viel zu alt!</canvas>
+                </div>
+                <div class="one-second-col">
+                    <canvas id="rightCanvas">Ihr Browser ist viel zu alt!</canvas>
+                </div>
+            </div>
         </div>	
         <div data-role="footer">
-            <a href="#pageone" data-transition="slide" style="color: black;">to Page 1</a>
+            <div class="ui-nodisc-icon" style="display: flex;margin: 5px;"><!-- Class added to the wrapper -->
+                <a href="#popupMenu" class="ui-btn ui-shadow ui-corner-all ui-icon-gear ui-btn-icon-notext ui-btn-b ui-btn-inline" data-rel="popup">Actions</a>
+            </div>
+        </div>
+        <div data-role="popup" id="popupMenu" data-theme="a">
+            <ul data-role="listview" data-inset="true" style="min-width:210px:">
+                <li data-role="list-divider">Choose an action</li>
+                <li><a href="#" onclick='$("#popupMenu").one("popupafterclose", function(){$("#popupChangeUser").popup("open", "")}).popup("close");'>Change Player</a></li>
+                <li><a href="#" onclick='$("#popupMenu").one("popupafterclose", function(){$("#popupNewPlayer").popup("open", "")}).popup("close");'>New Player</a></li>
+                <li><a href="#" onclick='playerNewRandomColor()'>Change Color</a></li>
+                <li><p><span id="latencySpan">-</span> Latency</p></li>
+            </ul>
+        </div>
+        <div data-role="popup" id="popupChangeUser" data-theme="a">
+            <!--<div class="ui-block-e">-->
+            <a href="#" data-rel="back" class="ui-btn ui-corner-all ui-shadow ui-btn-a ui-icon-delete ui-btn-icon-notext ui-btn-right">Close</a>
+            <div style="padding:10px 20px;">
+                <h3>Change User</h3>
+                <input id="userName" placeholder="Name"></input>
+                <input id="userPassword" type="password" placeholder="Password"></input>
+                <a href="#" class="ui-btn ui-corner-all" onclick="">Go</a>
+                <div id="changeUserDiv"></div>
+            </div>
+        </div>
+
+        <div data-role="popup" id="popupNewPlayer" data-theme="a">
+            <!--<div class="ui-block-e">-->
+            <a href="#" data-rel="back" class="ui-btn ui-corner-all ui-shadow ui-btn-a ui-icon-delete ui-btn-icon-notext ui-btn-right">Close</a>
+            <div style="padding:10px 20px;">
+                <h3>New Player</h3>
+                <input id="newPlayerName" placeholder="Name"></input>
+                <input id="userEmailNew" placeholder="Email" disabled></input>
+                <input id="userPasswordNew" type="password" placeholder="Password" disabled></input>
+                <input id="userNewUserCode" placeholder="New User Code Word" disabled></input>
+                <a href="#" class="ui-btn ui-corner-all" onclick="createNewPlayer()">Go</a>
+                <div id="newUserDiv"></div>
+            </div>
         </div>
     </div>	    
-    <div data-role="page" id="pageone">
-        <div data-role="header">
-            <h1>Test-Berechnungen Page 1</h1>
-        </div>
-        <div data-role="main" class="ui-content">
-            <table id="data-table"></table>
-            <br />
-            <button id="btn-1">Load List 1</button>&nbsp;
-            <button id="btn-2">Add Repetitions to 1</button>&nbsp;
-            <button id="btn-3">Add Repetitions to 2</button>&nbsp;
-            <button id="btn-4">Clear List</button>&nbsp;
-        </div>	
-        <div data-role="footer">
-            <h3><a href="#pagetwo" data-transition="slide" style="color: black;">to Page 2</a></h3>
-        </div>
-    </div>	
 </body>
 </html>

@@ -1,16 +1,16 @@
 //Ein Verweis um die Zeitschleife zu deaktivieren
-var intervalDurationMove = 200;
-var imageWapeon = document.createElement("IMG");
-var breite = 0;
-var hoehe = 0;
+let intervalDurationMove = 200;
+let imageWapeon = document.createElement("IMG");
+let breite = 0;
+let hoehe = 0;
 const areaSize = 32;
 const moveSize1 = 3;
 const moveSize2 = 1;
 const moveSize3 = 3;
 
 class Spieler {
-    constructor(plyN, areaManager) {
-        this.plyN = plyN;
+    constructor(id, areaManager, color) {
+        this.id = id;
         this.areaManager = areaManager;
         this.x = areaManager.startx;
         this.y = areaManager.starty;
@@ -23,7 +23,7 @@ class Spieler {
         this.winkel = 0;
         this.interval;
         this.spell = new Spell('Eisschutz-Schild',this);
-        this.weapon = new Weapon('sword',this, 2);
+        this.weapon = new Weapon('mac',this, 2);
         this.coords1;
         this.coords2;
         this.coords3;
@@ -31,9 +31,33 @@ class Spieler {
         this.weaponShiftX = 0;
         this.weaponShiftY = 0;
         this.weaponTyp = 0;
+        this.isPlayer = true;
         this.attackStop = true;
         this.attackDirection = true;
+        this.color = color;
         this.testCounter = 0;
+
+        this.imageArray = [];
+        /*
+        this.imageLinks = ["17/17_only_shield_64_64.png", "17/17_only_mac_64_64.png",
+            "17/17_only_legg_l_64_64.png", "17/17_only_legg_r_64_64.png", 
+            "17/17_only_body_64_64.png", "17/17_only_hand_r_64_64.png", 
+            "17/17_only_hand_l_64_64.png", "17/17_only_arm_r_64_64.png",
+            "17/17_only_arm_l_64_64.png", "17/17_only_shoulder_r_64_64.png",
+            "17/17_only_shoulder_l_64_64.png", "17/17_only_head_64_64.png"];
+        for(let i=0;i<12;i++){
+            this.imageArray[i] = new Image();
+            this.imageArray[i].onload = imageIsLoaded;
+            this.imageArray[i].src = imagePreLinkName+this.imageLinks[i];
+        }
+        */
+        this.xMI = [0,0,0,0,0,0,0,0,0,0,0,0];
+        this.yMI = [0,0,0,0,0,0,0,0,0,0,0,0];
+
+        this.isMoved = false;
+        this.isMovedChangeX = 1;
+        this.isMovedChangeY = 1;
+        this.lifePoints = 100;
     }
 	lineOfSight = function(x,y) {
         if(x>0){this.eyeX = 1;}
@@ -47,9 +71,11 @@ class Spieler {
         console.log("attackGo Funktion wurde benutzt, aber keine Funktion.");
 		//this.areaManager.attackArea(this.x+this.eyeX, this.y+this.eyeY);
 	}
-	update = function(ctx){
+	update = function(){
+	    if(this.lifePoints <= 0){return;}
         this.weapon.update();
-        if(keyWPressed){
+        if(keyPressedRunForward){
+            this.isMoved = true;
             if(this.xDiPlBool && this.eyeX == 1){ this.x += moveSize1;
 	            let boolXPL = !this.areaManager.checkPointMatrix(new Point(this.x+areaSize/2,this.y-areaSize/2+moveSize3));
 	            let boolXPR = !this.areaManager.checkPointMatrix(new Point(this.x+areaSize/2,this.y+areaSize/2-moveSize3));
@@ -61,9 +87,6 @@ class Spieler {
                 this.xDiPlBool = (boolXPL && boolXPR);
                 this.yDiPlBool = (boolYPL && boolYPR);
                 this.yDiMiBool = (boolYML && boolYMR);
-	    //TODO 8.01.2021
-	    //Hier werden jetzt die 4 Punkte vorne, links, rechts und unten in der Mitte überprüft
-	    //aber was ist mit den Ecken, aktuel gibt es da einen kleinen fehler
             }
             if(this.xDiMiBool && this.eyeX == -1){ this.x -= moveSize1;
 	            let boolXML = !this.areaManager.checkPointMatrix(new Point(this.x-areaSize/2,this.y-areaSize/2+moveSize3));
@@ -88,12 +111,6 @@ class Spieler {
                 this.yDiMiBool = (boolYML && boolYMR);
                 this.xDiMiBool = (boolXML && boolXMR); 
                 this.xDiPlBool = (boolXPL && boolXPR);
-                /*
-                console.log("bool00"+bool00);
-                console.log("bool01"+bool01);
-                console.log("bool10"+bool10);
-                console.log("bool11"+bool11);
-                */
             }
             if(this.yDiPlBool && this.eyeY == 1){ this.y += moveSize1;
 	            let boolYPR = !this.areaManager.checkPointMatrix(new Point(this.x-areaSize/2+moveSize3,this.y+areaSize/2));
@@ -107,10 +124,9 @@ class Spieler {
                 this.xDiMiBool = (boolXML && boolXMR);
                 this.xDiPlBool = (boolXPL && boolXPR);
             }
-            //console.log("plyX"+this.x);
-            //console.log("plyY"+this.y);
         }
-        if(keyEPressed){
+        if(keyPressedRunRight){
+            this.isMoved = true;
             if(this.yDiPlBool && this.eyeX == 1){ this.y += moveSize2;
 	            let boolYPR = !this.areaManager.checkPointMatrix(new Point(this.x-areaSize/2+moveSize3,this.y+areaSize/2));
 	            let boolYPL = !this.areaManager.checkPointMatrix(new Point(this.x+areaSize/2-moveSize3,this.y+areaSize/2));
@@ -160,7 +176,8 @@ class Spieler {
                 this.yDiMiBool = (boolYML && boolYMR);
             }
         }
-        if(keyQPressed){
+        if(keyPressedRunLeft){
+            this.isMoved = true;
             if(this.yDiMiBool && this.eyeX == 1){ this.y -= moveSize2;
 	            let boolYML = !this.areaManager.checkPointMatrix(new Point(this.x-areaSize/2+moveSize3,this.y-areaSize/2));
 	            let boolYMR = !this.areaManager.checkPointMatrix(new Point(this.x+areaSize/2-moveSize3,this.y-areaSize/2));
@@ -210,7 +227,8 @@ class Spieler {
                 this.yDiMiBool = (boolYML && boolYMR);
             }
         }
-        if(keySPressed){
+        if(keyPressedRunBack){
+            this.isMoved = true;
             if(this.yDiMiBool && this.eyeY == 1){ this.y -= moveSize2;
 	            let boolYML = !this.areaManager.checkPointMatrix(new Point(this.x-areaSize/2+moveSize3,this.y-areaSize/2));
 	            let boolYMR = !this.areaManager.checkPointMatrix(new Point(this.x+areaSize/2-moveSize3,this.y-areaSize/2));
@@ -260,22 +278,100 @@ class Spieler {
                 this.yDiMiBool = (boolYML && boolYMR);
             }
         }
-        //this.areaManager.checkPoints(this);
     }
 	render = function(ctx, xS, yS){
-	    //Rechteck für Körper
-	    ctx.fillStyle = "#FF823E";
-	    //ctx.fillRect(this.x+xS, this.y+yS, areaSize, areaSize);
-	    ctx.fillRect(xCe-areaSize/2, yCe-areaSize/2, areaSize, areaSize);
-	    //Rechteck für Blickrichtung
-        ctx.fillStyle = "#000000";
-        //ctx.fillRect(this.x+areaSize/2+this.eyeX*areaSize/4-areaSize/10+xS,this.y+areaSize/2+this.eyeY*areaSize/4-areaSize/10+yS,areaSize/5,areaSize/5);
-        ctx.fillRect(xCe-areaSize/10, yCe-areaSize/10-areaSize/4,areaSize/5,areaSize/5);
+	    if(this.lifePoints <= 0){
+            let lineWidth = 4;
+            let xPos = areaSize*7;
+            let yPos = areaSize*7;
+            
+            ctx.beginPath();
+            ctx.fillStyle = "black";
+            ctx.rect(4+xPos, 10+yPos, areaSize-2*lineWidth, lineWidth);  
+            ctx.stroke();
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.fillStyle = "black";
+            ctx.rect(14+xPos, 0+yPos, lineWidth, areaSize);
+            ctx.stroke();
+            ctx.fill();
+	        return;
+	    }
+
+        if(this.isMoved){
+            //this.yMI[0] -= this.isMovedChangeY;
+            //this.yMI[1] += this.isMovedChangeY;
+            this.yMI[2] += this.isMovedChangeY;
+            this.yMI[3] -= this.isMovedChangeY;
+            this.yMI[5] += this.isMovedChangeY;
+            this.yMI[6] -= this.isMovedChangeY;
+            this.yMI[7] += this.isMovedChangeY;
+            this.yMI[8] -= this.isMovedChangeY;
+            this.yMI[9] += this.isMovedChangeY;
+            this.yMI[10] -= this.isMovedChangeY;
+            this.xMI[11] = this.isMovedChangeY;
+            if(this.yMI[10] > 5){
+                this.isMovedChangeY = 1;
+            }
+            if(this.yMI[10] < -5){
+                this.isMovedChangeY = -1;
+            }
+            this.isMoved = false;
+        }
+        /*
+        for(let i=2;i<12;i++){
+            ctx.drawImage(this.imageArray[i], 0, 0, 64, 64, xCe-areaSize+this.xMI[i], yCe-areaSize+this.yMI[i], 2*areaSize, 2*areaSize);
+        }
+        */
+        let cX = xCe;
+        let cY = yCe;
+        let cR = areaSize/2;
+        let p0 = new Point(cX+cR,cY);
+        let p45 = p0.turnPoint(45,cX, cY);
+        let p90 = new Point(cX, cY-cR);
+        let p135 = p0.turnPoint(135,cX, cY);
+        let p180 = new Point(cX-cR,cY);
+        let p225 = p0.turnPoint(225,cX, cY);
+        let p270 = new Point(cX, cY+cR);
+        let p315 = p0.turnPoint(315,cX, cY);
+        ctx.fillStyle = "black";
+        ctx.strokeStyle = "black";
+        ctx.beginPath();
+        ctx.moveTo(p135.x, p135.y);
+        ctx.lineTo(cX-30, cY+this.yMI[2]);
+        ctx.lineTo(p225.x, p225.y);
+        ctx.lineTo(p315.x, p315.y);
+        ctx.lineTo(cX+30, cY+this.yMI[3]);
+        ctx.lineTo(p45.x, p45.y);
+        ctx.stroke(); 
+        drawCircle(ctx,cX,cY, cR, this.color);
+        let lifePercentage = Math.max(Math.min(1,this.lifePoints/100),0);
+        let cR2 = lifePercentage*(areaSize-4)/2;
+        drawCircle(ctx,cX,cY, cR2, "#ff5050");
+        //this.spell.draw(ctx, xS, yS);
         this.weapon.render(ctx, xS, yS);
-        this.spell.draw(ctx, xS, yS);
     }
-    beingAttacked = function(attackPoints){
+    beingAttacked = function(attackPoint){
         return false;
+    }
+    //Is used in touchEvent.js and keyboardEvent.js!
+    toExamineInFrontOfYou = function(){
+        let checkPoint = new Point(this.x,this.y);
+        let hitObjectID = false;;
+        for(let i = 1;i<30;i++){
+            checkPoint.x += this.eyeX*areaSize;
+            checkPoint.y += this.eyeY*areaSize;
+            hitObjectID = this.areaManager.checkPointMatrixGetID(checkPoint);
+            if(hitObjectID !== false){
+                break;
+            }
+        }
+        if(hitObjectID !== false){
+            console.log('Objekt mit id: '+  hitObjectID + ' vor dem Spieler.');
+        }else{
+            console.log('Kein Objekt vor dem Spieler oder fehler in der Berechnung.');
+        }
     }
 }
 
@@ -284,13 +380,14 @@ class Cube {
         this.id = id;
         this.x = x;
         this.y = y;
+        this.color = "#307663";
     }
     update = function(ctx){
 	    return false;
     }
 	render = function(ctx, xS, yS){
 	    //Rechteck für den Körper
-	    ctx.fillStyle = "#307663";
+	    ctx.fillStyle = this.color;
 	    ctx.fillRect(this.x+xS, this.y+yS, areaSize, areaSize);
     }
     getxWalls = function(){
@@ -305,13 +402,13 @@ class Cube {
         let secondWall = [this.y+areaSize, this.x, this.x+areaSize, -1];
         return [firstWall, secondWall];
     }
-    beingAttacked = function(attackPoints){
-        var ind;
-        for(ind in attackPoints){
-            if(this.isPointIn(attackPoints[ind])){
-                return true;
-            }
+    beingAttacked = function(attackPoint){
+        //var ind;
+        //for(ind in attackPoints){
+        if(this.isPointIn(attackPoint)){
+            return true;
         }
+        //}
         return false;
     }
     isPointIn = function(point){
@@ -340,7 +437,7 @@ class Rock {
         this.y = y;
         this.imageData = new Image();
         this.imageData.onload = imageIsLoaded;
-        this.imageData.src = "vase_1.png";
+        this.imageData.src = imagePreLinkName+"vase_1.png";
         this.life = 5;
         this.state = 5;
         this.somethingChanged = false;
@@ -420,17 +517,17 @@ class Rock {
         }
         return false;
     }
-    beingAttacked = function(attackPoints){
-        var ind;
-        for(ind in attackPoints){
-            if(this.life > 0 && this.isPointIn(attackPoints[ind])){
-                this.life -= 1;
-                this.state -= 1;
-                this.somethingChanged = true;
-                console.log("Vase wurde angegriffen.");
-                return true;
-            }
+    beingAttacked = function(attackPoint){
+        //var ind;
+        //for(ind in attackPoints){
+        if(this.life > 0 && this.isPointIn(attackPoint)){
+            this.life -= 1;
+            this.state -= 1;
+            this.somethingChanged = true;
+            console.log("Vase wurde angegriffen.");
+            return true;
         }
+        //}
         return false;
     }
     isPointIn = function(point){
@@ -447,31 +544,155 @@ class Rock {
             if(this.state == 5){
                 this.imageData = new Image();
                 this.imageData.onload = imageIsLoaded;
-                this.imageData.src = "vase_1.png";
+                this.imageData.src = imagePreLinkName+"vase_1.png";
             }else if(this.state == 4){
                 this.imageData = new Image();
                 this.imageData.onload = imageIsLoaded;
-                this.imageData.src = "vase_2.png";
+                this.imageData.src = imagePreLinkName+"vase_2.png";
             }else if(this.state == 3){
                 this.imageData = new Image();
                 this.imageData.onload = imageIsLoaded;
-                this.imageData.src = "vase_3.png";
+                this.imageData.src = imagePreLinkName+"vase_3.png";
             }else if(this.state == 2){
                 this.imageData = new Image();
                 this.imageData.onload = imageIsLoaded;
-                this.imageData.src = "vase_4.png";
+                this.imageData.src = imagePreLinkName+"vase_4.png";
             }else if(this.state == 1){
                 this.imageData = new Image();
                 this.imageData.onload = imageIsLoaded;
-                this.imageData.src = "vase_5.png";
+                this.imageData.src = imagePreLinkName+"vase_5.png";
             }else if(this.state == 0){
                 this.imageData = new Image();
                 this.imageData.onload = imageIsLoaded;
-                this.imageData.src = "vase_6.png";
+                this.imageData.src = imagePreLinkName+"vase_6.png";
             }else{
                 this.existIt  = false;
             }
             
+        }
+    }
+}
+
+class OpponentPlayer {
+    constructor(id, startX, startY, name, areaManager, color) {
+        console.log('OpponentPlayer was created, id: '+id);
+        this.id = id;
+        this.areaManager = areaManager;
+        this.x = startX;
+        this.y = startY;
+        this.name = name;
+        this.eyeX = 0;
+        this.eyeY = -1;
+        this.winkel = 0;
+        this.interval;
+        this.spell;
+        this.weapon = new Weapon('mac',this, 2);
+        this.testCounter = 0;
+        this.xMI = [0,0,0,0,0,0,0,0,0,0,0,0];
+        this.yMI = [0,0,0,0,0,0,0,0,0,0,0,0];
+        this.isPlayer = false;
+
+        this.isMoved = false;
+        this.isMovedChangeX = 1;
+        this.isMovedChangeY = 1;
+        this.lifePoints = 100;
+        this.color = color;
+    }
+	toConsole = function() {
+        console.log('Ich bin ein OpponentPlayer.');
+    }
+	lineOfSight = function(x,y) {
+        if(x>0){this.eyeX = 1;}
+        else if(x<0){this.eyeX = -1;}
+        else{this.eyeX = 0;}
+        if(y>0){this.eyeY = 1;}
+        else if(y<0){this.eyeY = -1;}
+        else{this.eyeY = 0;}
+    }
+	attackGo = function() {
+        console.log("attackGo Funktion wurde benutzt, aber keine Funktion.");
+		//this.areaManager.attackArea(this.x+this.eyeX, this.y+this.eyeY);
+	}
+	update = function(ctx){
+        this.weapon.update();
+    }
+	render = function(ctx, xS, yS){
+	    if(this.lifePoints <= 0){
+            let lineWidth = 4;
+            let xPos = this.x+xS;
+            let yPos = this.y+yS;
+            
+            ctx.beginPath();
+            ctx.fillStyle = "black";
+            ctx.rect(4+xPos, 10+yPos, areaSize-2*lineWidth, lineWidth);  
+            ctx.stroke();
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.fillStyle = "black";
+            ctx.rect(14+xPos, 0+yPos, lineWidth, areaSize);
+            ctx.stroke();
+            ctx.fill();
+	        return;
+        }
+        //console.log('OpponentPlayer was drawn.');
+        let cX = this.x+xS;
+        let cY = this.y+yS;
+        let cR = areaSize/2;
+        let addAngel = 0;
+        if(this.eyeX == 1){
+            addAngel = -90;
+        }else if(this.eyeX == -1){
+            addAngel = 90;
+        }else if(this.eyeY == 1){
+            addAngel = 180;
+        }
+        let p0 = new Point(cX+cR,cY);
+        let p45 = p0.turnPoint(45+addAngel,cX, cY);
+        let p90 = new Point(cX, cY-cR);
+        let p135 = p0.turnPoint(135+addAngel,cX, cY);
+        let p180 = new Point(cX-cR,cY);
+        let p225 = p0.turnPoint(225+addAngel,cX, cY);
+        let p270 = new Point(cX, cY+cR);
+        let p315 = p0.turnPoint(315+addAngel,cX, cY);
+        let pArmL = new Point(cX-2*cR, cY+this.yMI[2]);
+        pArmL = pArmL.turnPoint(addAngel,cX, cY);
+        let pArmR = new Point(cX+2*cR, cY+this.yMI[3]);
+        pArmR = pArmR.turnPoint(addAngel,cX, cY);
+        ctx.fillStyle = "black";
+        ctx.strokeStyle = "black";
+        ctx.beginPath();
+        ctx.moveTo(p135.x, p135.y);
+        ctx.lineTo(pArmL.x, pArmL.y);
+        ctx.lineTo(p225.x, p225.y);
+        ctx.lineTo(p315.x, p315.y);
+        ctx.lineTo(pArmR.x, pArmR.y);
+        ctx.lineTo(p45.x, p45.y);
+        ctx.stroke();
+        drawCircle(ctx,cX,cY, cR, this.color);
+        let lifePercentage = Math.max(Math.min(1,this.lifePoints/100),0);
+        let cR2 = lifePercentage*(areaSize-4)/2;
+        drawCircle(ctx,cX,cY, cR2, "#ff5050");
+        this.weapon.renderOpponentPlayer(ctx, cX, cY, addAngel);
+    }
+    beingAttacked = function(attackPoint){
+        return false;
+    }
+    isPointIn = function(point){
+	    if(this.lifePoints <= 0){
+            return false;
+        }
+	    if(Math.sqrt((this.x-point.x)*(this.x-point.x)+(this.y-point.y)*(this.y-point.y))<areaSize/2){
+            return true;
+        }
+        return false;
+    }
+	newPosition = function(x,y){
+	    if(x != this.x && y != this.y){
+            if(this.areaManager.newPositionOfObject(x,y,this)){
+                this.x = x;
+                this.y = y;
+            }
         }
     }
 }

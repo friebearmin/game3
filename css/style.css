@@ -17,8 +17,65 @@ html, body {
 }
 canvas {
     height: auto;
-    width: 50%;
+    width: 100%;
     display: block;
     margin-left: auto;
     margin-right: auto;
+}
+/*Quelle: https://stackoverflow.com/questions/25822396/css-css3-to-switch-positions-of-elements  */
+.sections {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.one-main-col {
+  flex: 2;
+  //margin: 0 1%;
+}
+.one-second-col {
+  flex: 1;
+  //margin: 0 1%;
+}
+.one-third-col {
+  flex: 3;
+}
+
+@media (max-width: 767px) {
+  .one-main-col {
+    flex: 1 100%; /* Actually it should be 50%
+    but there's a margin of 1%
+    around the columns, hence 50%-2(1%) = 48% */
+  }
+  .one-second-col {
+    flex: 1 50%; /* Actually it should be 50%
+    but there's a margin of 1%
+    around the columns, hence 50%-2(1%) = 48% */
+  }
+
+  .sections > :nth-child(1) { order: 2; }
+  .sections > :nth-child(2) { order: 1; }
+  .sections > :nth-child(3) { order: 3; }
+}
+
+
+/***************** Styling *****************/
+
+* {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
+//.sections > :nth-child(1) { background-color: lime; }
+//.sections > :nth-child(2) { background-color: skyblue; }
+//.sections > :nth-child(3) { background-color: orange; }
+
+.sections > div {
+  //padding: 1em;
+  //margin-bottom: .5em;
+  font-size: 3vw;
+  line-height: 3vw;
+  font-family: sans-serif;
+  text-align: center;
+  text-transform: uppercase;
 }

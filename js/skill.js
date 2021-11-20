@@ -102,9 +102,6 @@ class Skill{
     checkNextMalusRepetition = function() {
         this.nextMalusRepetitions = getNextMalusRepetitions(this.currentLevel);
     }
-
-    //TODO change power depending on the level
-
 }
 
 function getNextLevelRepetitions(level){
@@ -261,19 +258,27 @@ class Spell{
         //console.error("Ein Spell wurde angegriffen. Nichts programmiert."); 
     }
 }
-const weaponTypes = ['hammer', 'polearm', 'axe', 'sword', 'rod', 'dagger', 'katana'];
+const weaponTypes = ['mac', 'polearm', 'axe', 'sword', 'rod', 'dagger', 'katana'];
 class Weapon{
     constructor(name, player, size) {
         this.name = name;
         this.skill = new Skill();
         this.player = player;
-        this.angle = 45;
+        //this.angle = 45;
+        this.angle = 0;
+        this.anglePhp = 0;
+        this.angle1 = 0;
+        this.angle2 = 0;
+        this.angleTime1 = 0;
+        this.angleTime2 = 0;
         this.loop;
         this.coords = [];
+        /* wird nicht gebraucht
         this.coords1;
         this.coords2;
         this.coords3;
         this.coords4;
+        */
         this.moveX = 0;
         this.moveY = 0;
         this.moveXY = 1;
@@ -281,20 +286,20 @@ class Weapon{
         this.weaponInNoUse = true;
         this.useWeapon1 = false;
         this.useWeapon2 = false;
+        this.useWeaponAttackAndStop = false;
         this.moveWeaponDirection = 1;
+        this.testPointX = 0;
+        this.testPointY = 0;
+        this.weaponRotationPoint;
+        this.weaponAttackPoints = [];
         switch(this.name){
             case weaponTypes[0]:
                 //hammer
-                this.coords = [
-                    new Point(1,0),
-                    new Point(1,areaSize*1.5),
-                    new Point(areaSize/2,areaSize*1.5),
-                    new Point(areaSize/2,areaSize*2),
-                    new Point(-areaSize/2,areaSize*2),
-                    new Point(-areaSize/2,areaSize*1.5),
-                    new Point(-1,areaSize*1.5),
-                    new Point(-1,0),
-                ];
+                this.weaponRotationPoint = new Point(0,0);//new Point(48,47);
+                this.angle = 0;
+                this.weaponAttackPoints.push(new Point(2*areaSize/2,0));
+                this.weaponAttackPoints.push(new Point(3*areaSize/2,0));
+                this.weaponAttackPoints.push(new Point(4*areaSize/2,0));
                 break;
             case weaponTypes[1]:
                 //polearm
@@ -310,31 +315,14 @@ class Weapon{
                 break;
             case weaponTypes[2]:
                 //axe
-                this.coords = [
-                    new Point(1,0),
-                    new Point(1,areaSize*1.3),
-                    new Point(2,areaSize*1.3),
-
-                    new Point(5,areaSize*1),
-                    new Point(7,areaSize*1.3),
-                    new Point(7,areaSize*1.5),
-                    new Point(5,areaSize*1.8),
-
-                    new Point(2,areaSize*1.5),
-                    new Point(1,areaSize*1.5),
-                    new Point(1,areaSize*1.6),
-                    new Point(-1,areaSize*1.6),
-                    new Point(-1,areaSize*1.5),
-                    new Point(-2,areaSize*1.5),
-                    new Point(-2,areaSize*1.3),
-                    new Point(-1,areaSize*1.3),
-                    new Point(-1,0)
-                ];
+                imageWeapon.onload = imageIsLoaded;
+                imageWeapon.src = imagePreLinkName+"axe.png";
                 break;
             case weaponTypes[3]:
                 //sword
                 imageWeapon.onload = imageIsLoaded;
-                imageWeapon.src = "magicSword.png";
+                //imageWeapon.src = imagePreLinkName+"magicSword.png";
+                imageWeapon.src = imagePreLinkName+"17/17_only_mac_64_64.png";
                 break;
             case weaponTypes[4]:
                 //rod
@@ -354,90 +342,144 @@ class Weapon{
         }
     }
 	render = function(ctx, xS, yS){
-        var xZero = xCe; var yZero = yCe;
-        ctx.translate(xZero, yZero);
-        ctx.rotate(-this.angle * Math.PI / 180);
-        ctx.drawImage(imageWeapon, 0, 0, 128, 128, 0+this.moveX, 0+this.moveY, areaSize*2, areaSize*2);
-
-        /*
+        ctx.fillStyle = "#333300";
+        ctx.strokeStyle = "black";
+        ctx.translate(xCe+this.weaponRotationPoint.x, yCe+this.weaponRotationPoint.y);
+        let tmp = 0;
+        ctx.rotate(-(this.angle+tmp) * Math.PI / 180);
         ctx.beginPath();
-        ctx.moveTo(1, 0);
-        ctx.lineTo(-1, 0);
-        ctx.lineTo(50, 50);
-        ctx.closePath();
-	    ctx.fillStyle = "#66ccff";
+        ctx.moveTo(0+this.moveX-this.weaponRotationPoint.x+17, -1+this.moveY-this.weaponRotationPoint.y);
+        ctx.lineTo(5+this.moveX-this.weaponRotationPoint.x+17, -1+this.moveY-this.weaponRotationPoint.y);
+        ctx.lineTo(5+this.moveX-this.weaponRotationPoint.x+17, -5+this.moveY-this.weaponRotationPoint.y);
+        ctx.lineTo(7+this.moveX-this.weaponRotationPoint.x+17, -5+this.moveY-this.weaponRotationPoint.y);
+        ctx.lineTo(7+this.moveX-this.weaponRotationPoint.x+17, -1+this.moveY-this.weaponRotationPoint.y);
+        ctx.lineTo(40+this.moveX-this.weaponRotationPoint.x+17, -1+this.moveY-this.weaponRotationPoint.y);
+        ctx.lineTo(45+this.moveX-this.weaponRotationPoint.x+17, 0+this.moveY-this.weaponRotationPoint.y);
+        ctx.lineTo(40+this.moveX-this.weaponRotationPoint.x+17, 1+this.moveY-this.weaponRotationPoint.y);
+        ctx.lineTo(7+this.moveX-this.weaponRotationPoint.x+17, 1+this.moveY-this.weaponRotationPoint.y);
+        ctx.lineTo(7+this.moveX-this.weaponRotationPoint.x+17, 5+this.moveY-this.weaponRotationPoint.y);
+        ctx.lineTo(5+this.moveX-this.weaponRotationPoint.x+17, 5+this.moveY-this.weaponRotationPoint.y);
+        ctx.lineTo(5+this.moveX-this.weaponRotationPoint.x+17, 1+this.moveY-this.weaponRotationPoint.y);
+        ctx.lineTo(0+this.moveX-this.weaponRotationPoint.x+17, 1+this.moveY-this.weaponRotationPoint.y);
+        ctx.lineTo(0+this.moveX-this.weaponRotationPoint.x+17, -1+this.moveY-this.weaponRotationPoint.y);
+        ctx.stroke(); 
         ctx.fill();
-        */
-
-        ctx.rotate(this.angle * Math.PI / 180);
-        ctx.translate(-xZero, -yZero);
+        if(key8Pressed){
+            drawCircle(ctx,2*areaSize/2,0, 2, 'red');
+            drawCircle(ctx,3*areaSize/2,0, 2, 'red');
+            drawCircle(ctx,4*areaSize/2,0, 2, 'red');
+        }
+        //ctx.fillRect(0+this.moveX-this.weaponRotationPoint.x-areaSize, 0+this.moveY-this.weaponRotationPoint.y-areaSize, areaSize/10, areaSize*2);
+        ctx.rotate((this.angle+tmp) * Math.PI / 180);
+        ctx.translate(-xCe-this.weaponRotationPoint.x, -yCe-this.weaponRotationPoint.y);
+    }
+	renderOpponentPlayer = function(ctx, xS, yS, addAngel){
+        ctx.fillStyle = "#333300";
+        ctx.strokeStyle = "black";
+        ctx.translate(xS+this.weaponRotationPoint.x, yS+this.weaponRotationPoint.y);
+        let tmp = addAngel;
+        ctx.rotate(-(this.angle+tmp) * Math.PI / 180);
+        ctx.beginPath();
+        ctx.moveTo(0+this.moveX-this.weaponRotationPoint.x+17, -1+this.moveY-this.weaponRotationPoint.y);
+        ctx.lineTo(5+this.moveX-this.weaponRotationPoint.x+17, -1+this.moveY-this.weaponRotationPoint.y);
+        ctx.lineTo(5+this.moveX-this.weaponRotationPoint.x+17, -5+this.moveY-this.weaponRotationPoint.y);
+        ctx.lineTo(7+this.moveX-this.weaponRotationPoint.x+17, -5+this.moveY-this.weaponRotationPoint.y);
+        ctx.lineTo(7+this.moveX-this.weaponRotationPoint.x+17, -1+this.moveY-this.weaponRotationPoint.y);
+        ctx.lineTo(40+this.moveX-this.weaponRotationPoint.x+17, -1+this.moveY-this.weaponRotationPoint.y);
+        ctx.lineTo(45+this.moveX-this.weaponRotationPoint.x+17, 0+this.moveY-this.weaponRotationPoint.y);
+        ctx.lineTo(40+this.moveX-this.weaponRotationPoint.x+17, 1+this.moveY-this.weaponRotationPoint.y);
+        ctx.lineTo(7+this.moveX-this.weaponRotationPoint.x+17, 1+this.moveY-this.weaponRotationPoint.y);
+        ctx.lineTo(7+this.moveX-this.weaponRotationPoint.x+17, 5+this.moveY-this.weaponRotationPoint.y);
+        ctx.lineTo(5+this.moveX-this.weaponRotationPoint.x+17, 5+this.moveY-this.weaponRotationPoint.y);
+        ctx.lineTo(5+this.moveX-this.weaponRotationPoint.x+17, 1+this.moveY-this.weaponRotationPoint.y);
+        ctx.lineTo(0+this.moveX-this.weaponRotationPoint.x+17, 1+this.moveY-this.weaponRotationPoint.y);
+        ctx.lineTo(0+this.moveX-this.weaponRotationPoint.x+17, -1+this.moveY-this.weaponRotationPoint.y);
+        ctx.stroke(); 
+        ctx.fill();
+        //ctx.fillRect(0+this.moveX-this.weaponRotationPoint.x-areaSize, 0+this.moveY-this.weaponRotationPoint.y-areaSize, areaSize/10, areaSize*2);
+        ctx.rotate((this.angle+tmp) * Math.PI / 180);
+        ctx.translate(-xS-this.weaponRotationPoint.x, -yS-this.weaponRotationPoint.y);
     }
 	update = function(){
-	    if(this.useWeapon1){
-            this.weaponMove1();
-        }
-	    if(this.useWeapon2){
-            this.weaponMove2();
-        }
-	    if(key3Pressed){
-            if(this.useWeapon2){
-                this.useWeapon2 = false;
-                key3Pressed = false;
-            }else{
-                this.useWeapon2 = true;
-                key3Pressed = false;
-            }
-        }
-	    if(key4Pressed){
-            if(this.useWeapon1){
-                this.useWeapon1 = false;
-                key4Pressed = false;
-                //this.moveWeaponDirection = -1;
-            }else{
-                console.log("Weapon is used."); 
-                this.useWeapon1 = true;
-                key4Pressed = false;
+	    let now = Date.now();
+        let angleNow = (this.angle2-this.angle1)*Math.min((now-this.angleTime1)/(this.angleTime2-this.angleTime1),1)+this.angle1;
+	    this.angle = angleNow;
+	    if(this.player.isPlayer && this.player.lifePoints > 0 && writeToServer){
+	        if(now < this.angleTime2){
+                let weaponAttackPointsToUse = this.calculateAttackPoints();
+                for(let i = 0; i< weaponAttackPointsToUse.length; i++){
+                    //TODO 10.10.2021 nächste Zeile ist ein boolen und wenn gegenspieler getroffen, dann was machen
+                    let hitObjectID = this.player.areaManager.checkPointMatrixGetID(weaponAttackPointsToUse[i]);
+                    if(hitObjectID > 0){
+                        writeToServer = false; //wird in dataHitToServer (in der main) nach Serverkontakt auf true gesetzt
+                        let hitOpponentPlayer = false;
+                        if(opponentIDs.includes(hitObjectID)){
+                            hitOpponentPlayer = true;
+                        }
+                        dataHitToServer(hitOpponentPlayer);
+                        break;
+                    }
+                }
             }
         }
     }
-	weaponMove1 = function(){
-        this.angle += this.moveWeaponDirection*7;
-        let attackBool = false;
-        if(this.moveWeaponDirection == 1){
-            let winkelTmp = this.angle-135;
-            let pointsofWeapon = [];
-            for(var i = 0;i<4;i++){
-                let xToBeCal = this.player.eyeX*(areaSize+areaSize*i/3);
-                let yToBeCal = this.player.eyeY*(areaSize+areaSize*i/3);
-                let gedrehtePunkte = drehePunkt(0, 0, xToBeCal, yToBeCal, winkelTmp);
-                pointsofWeapon.push(new Point(this.player.x+gedrehtePunkte[0],this.player.y+gedrehtePunkte[1]));
-            }
-            attackBool = this.player.areaManager.attackArea(pointsofWeapon);
-        }
-        if(this.angle > 170 || attackBool){
-            this.moveWeaponDirection = -1;
-        }
-        if(this.angle < 46){
-            this.moveWeaponDirection = 1;
-            this.angle = 45
-            this.useWeapon1 = false;
-        }
+	angleUpdate = function(angleWeapon1,angleWeapon2,angleWeaponTime1,angleWeaponTime2){
+        this.angle1 = angleWeapon1;
+        this.angle2 = angleWeapon2;
+        this.angleTime1 = angleWeaponTime1;
+        this.angleTime2 = angleWeaponTime2;
     }
-	weaponMove2 = function(){
-        this.moveX += 3*this.moveXY;
-        this.moveY += 3*this.moveXY;
-        if(this.moveX > 20){
-            this.moveXY = -1;
+    calculateAttackPoints = function(){
+        let addAngle = 0;
+        if(this.player.eyeX == 1){
+            addAngle = -90;
+        }else if(this.player.eyeX == -1){
+            addAngle = 90;
+        }else if(this.player.eyeY == 1){
+            addAngle = 180;
         }
-        if(this.moveX <= 0){
-            this.moveX = 0;
-            this.moveY = 0;
-            this.moveXY = 1;
-            this.useWeapon2 = false;
-            if(this.angle > 45){
-                this.useWeapon1 = true;
-                this.moveWeaponDirection = -1;
-            }
+        let weaponAttackPointsToUse = [];
+        for(let i = 0; i< this.weaponAttackPoints.length; i++){
+            weaponAttackPointsToUse.push(this.weaponAttackPoints[i].turnPoint(this.angle+addAngle, 0,0));
+        }
+        for(let i = 0; i< weaponAttackPointsToUse.length; i++){
+            weaponAttackPointsToUse[i].x += this.player.x;
+            weaponAttackPointsToUse[i].y += this.player.y;
+        }
+        return weaponAttackPointsToUse;
+    }
+    printAttackPoints = function(){
+        console.log('printAttackPoints');
+        /*
+        let point1 = new Point(2*areaSize/2,0);
+        let point2 = new Point(3*areaSize/2,0);
+        let point3 = new Point(4*areaSize/2,0);
+        let addAngle = 0;
+        if(this.player.eyeX == 1){
+            addAngle = -90;
+        }else if(this.player.eyeX == -1){
+            addAngle = 90;
+        }else if(this.player.eyeY == 1){
+            addAngle = 180;
+        }
+        let turnpoint1 = point1.turnPoint(this.angle+addAngle, 0,0);
+        let turnpoint2 = point2.turnPoint(this.angle+addAngle, 0,0);
+        let turnpoint3 = point3.turnPoint(this.angle+addAngle, 0,0);
+        turnpoint1.x += this.player.x;
+        turnpoint1.y += this.player.y;
+        turnpoint2.x += this.player.x;
+        turnpoint2.y += this.player.y;
+        turnpoint3.x += this.player.x;
+        turnpoint3.y += this.player.y;
+        console.log('player x: '+ this.player.x + ' y: ' + this.player.y);
+        console.log('point1 x: '+ turnpoint1.x + ' y: ' + turnpoint1.y);
+        console.log('point2 x: '+ turnpoint2.x + ' y: ' + turnpoint2.y);
+        console.log('point3 x: '+ turnpoint3.x + ' y: ' + turnpoint3.y);
+        */
+        console.log('player x: '+ this.player.x + ' y: ' + this.player.y);
+        let weaponAttackPointsToUse = this.calculateAttackPoints();
+        for(let i = 0; i< weaponAttackPointsToUse.length; i++){
+            console.log('point'+i+' x: '+ weaponAttackPointsToUse[i].x + ' y: ' + weaponAttackPointsToUse[i].y);
         }
     }
 }
